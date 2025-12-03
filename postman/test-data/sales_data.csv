@@ -1,0 +1,14 @@
+Date,Product,Qty,Price,Customer,Sales Rep,Territory
+2024-01-15,Widget Pro 3000,10,49.99,Acme Corp,John Smith,Northeast
+2024-01-16,Gadget Plus,25,29.99,TechStart Inc,Sarah Johnson,West Coast
+2024-01-16,Widget Pro 3000,5,49.99,Global Systems,John Smith,Northeast
+2024-01-17,Super Connector,100,9.99,DataFlow LLC,Mike Chen,Midwest
+2024-01-18,Gadget Plus,15,29.99,Innovation Labs,Sarah Johnson,West Coast
+2024-01-18,Premium Bundle,3,199.99,Enterprise Solutions,Lisa Wang,Southeast
+2024-01-19,Widget Pro 3000,20,49.99,NextGen Tech,John Smith,Northeast
+2024-01-20,Super Connector,50,9.99,CloudFirst Inc,Mike Chen,Midwest
+2024-01-21,Gadget Plus,8,29.99,StartupXYZ,Sarah Johnson,West Coast
+2024-01-22,Premium Bundle,1,199.99,MegaCorp,Lisa Wang,Southeast
+2024-01-22,Widget Pro 3000,30,49.99,Digital Dreams,John Smith,Northeast
+2024-01-23,Super Connector,200,9.99,NetWorks Plus,Mike Chen,Midwest
+

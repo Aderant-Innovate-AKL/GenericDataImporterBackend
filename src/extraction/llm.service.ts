@@ -13,7 +13,7 @@ export interface LLMInferenceConfig {
 /**
  * Default model configuration
  */
-const DEFAULT_MODEL = 'anthropic.claude-3-5-sonnet-20241022-v2:0';
+const DEFAULT_MODEL = 'us.anthropic.claude-sonnet-4-5-20250929-v1:0';
 const DEFAULT_TEMPERATURE = 0.1; // Low temperature for consistent extraction
 const DEFAULT_MAX_TOKENS = 4096;
 

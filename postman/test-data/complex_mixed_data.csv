@@ -1,0 +1,10 @@
+Order ID,Customer Info,Items Ordered,Shipping Address,Order Notes,Status
+ORD-2024-001,"John Doe (john@email.com, VIP)","Widget x3 @ $25, Gadget x1 @ $50","123 Main St, NYC 10001",Rush delivery requested,Shipped
+ORD-2024-002,"Jane Smith (jane.s@corp.com, Standard)","Premium Pack x1 @ $199","456 Oak Ave, LA 90001",Gift wrap,Processing
+ORD-2024-003,"Bob Johnson (bob@tech.io, VIP)","Widget x10 @ $25, Connector x5 @ $10","789 Pine Rd, Chicago 60601",Bulk order discount applied,Delivered
+ORD-2024-004,"Alice Brown (alice@startup.co, New)","Starter Kit x2 @ $75","321 Elm Blvd, Houston 77001",,Pending
+ORD-2024-005,"Charlie Wilson (c.wilson@enterprise.com, VIP)","Enterprise Bundle x1 @ $999, Support Plan x1 @ $200","555 Maple Ln, Phoenix 85001",Annual contract renewal,Processing
+ORD-2024-006,"Diana Lee (diana@company.org, Standard)","Gadget x5 @ $50","888 Cedar Ct, Philadelphia 19101",Second shipment to same address,Shipped
+ORD-2024-007,"Edward Kim (ed.kim@mail.com, New)","Widget x1 @ $25","999 Birch Dr, San Antonio 78201",First time customer,Delivered
+ORD-2024-008,"Fiona Garcia (fiona@biz.net, Standard)","Premium Pack x2 @ $199, Widget x2 @ $25","111 Walnut St, San Diego 92101",Expedited shipping,Processing
+

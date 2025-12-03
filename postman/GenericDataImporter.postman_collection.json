@@ -1,0 +1,543 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Generic Data Importer API",
+    "description": "AI-powered data extraction service that intelligently maps source data to user-defined schemas using LLM-based field extraction.\n\n## Getting Started\n1. Import this collection and the environment file\n2. Start the backend server: `npm run start:dev`\n3. Use the Health endpoints to verify connectivity\n4. Upload test data files using the Extract endpoint\n\n## Workflow\n1. POST /extract - Upload file + context → Get operationId\n2. GET /operations/{operationId} - Poll for status/results\n3. POST /operations/{operationId}/cancel - Cancel if needed",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "description": "Health check and readiness endpoints",
+      "item": [
+        {
+          "name": "Root Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            },
+            "description": "Basic health check at root endpoint"
+          },
+          "response": []
+        },
+        {
+          "name": "Health Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Detailed health status including operation counts"
+          },
+          "response": []
+        },
+        {
+          "name": "Readiness Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/ready",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "ready"]
+            },
+            "description": "Kubernetes-style readiness probe"
+          },
+          "response": []
+        },
+        {
+          "name": "Liveness Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/live",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "live"]
+            },
+            "description": "Kubernetes-style liveness probe"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Extract",
+      "description": "Data extraction endpoints - the core functionality",
+      "item": [
+        {
+          "name": "Extract - Sales Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 202) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('operationId', response.operationId);",
+                  "    console.log('Operation ID saved:', response.operationId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Select test-data/sales_data.csv"
+                },
+                {
+                  "key": "context",
+                  "value": "{\n  \"description\": \"Monthly sales report from regional distributors. Used for revenue forecasting and sales analysis.\",\n  \"fields\": [\n    { \"field\": \"transaction_date\", \"description\": \"The date when the sale occurred\" },\n    { \"field\": \"product_name\", \"description\": \"Name of the product sold\" },\n    { \"field\": \"quantity\", \"description\": \"Number of units sold\" },\n    { \"field\": \"unit_price\", \"description\": \"Price per unit in dollars\" },\n    { \"field\": \"total_amount\", \"description\": \"Total sale amount (quantity x unit price)\" },\n    { \"field\": \"customer_name\", \"description\": \"Name of the customer\" },\n    { \"field\": \"region\", \"description\": \"Sales region or territory\" }\n  ]\n}",
+                  "type": "text",
+                  "description": "Extraction context as JSON"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/extract",
+              "host": ["{{baseUrl}}"],
+              "path": ["extract"]
+            },
+            "description": "Upload a sales CSV file and extract structured data.\n\n**Test Data:** Use `test-data/sales_data.csv`\n\n**Response:** Returns operationId which is automatically saved to environment."
+          },
+          "response": []
+        },
+        {
+          "name": "Extract - Employee Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 202) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('operationId', response.operationId);",
+                  "    console.log('Operation ID saved:', response.operationId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Select test-data/employee_data.csv"
+                },
+                {
+                  "key": "context",
+                  "value": "{\n  \"description\": \"HR employee roster export for payroll processing. Contains employee information and compensation details.\",\n  \"fields\": [\n    { \"field\": \"employee_id\", \"description\": \"Unique employee identifier\" },\n    { \"field\": \"full_name\", \"description\": \"Employee's complete name\" },\n    { \"field\": \"email\", \"description\": \"Work email address\" },\n    { \"field\": \"department\", \"description\": \"Department or business unit\" },\n    { \"field\": \"job_title\", \"description\": \"Position or role title\" },\n    { \"field\": \"hire_date\", \"description\": \"Date the employee was hired\" },\n    { \"field\": \"salary\", \"description\": \"Annual salary in USD\" }\n  ]\n}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/extract",
+              "host": ["{{baseUrl}}"],
+              "path": ["extract"]
+            },
+            "description": "Upload an employee CSV file and extract HR data.\n\n**Test Data:** Use `test-data/employee_data.csv`"
+          },
+          "response": []
+        },
+        {
+          "name": "Extract - Product Inventory",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 202) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('operationId', response.operationId);",
+                  "    console.log('Operation ID saved:', response.operationId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Select test-data/inventory_data.csv"
+                },
+                {
+                  "key": "context",
+                  "value": "{\n  \"description\": \"Warehouse inventory snapshot for stock management and reorder tracking.\",\n  \"fields\": [\n    { \"field\": \"sku\", \"description\": \"Stock keeping unit identifier\" },\n    { \"field\": \"product_name\", \"description\": \"Name of the product\" },\n    { \"field\": \"category\", \"description\": \"Product category\" },\n    { \"field\": \"quantity_on_hand\", \"description\": \"Current stock quantity\" },\n    { \"field\": \"reorder_level\", \"description\": \"Minimum stock before reorder\" },\n    { \"field\": \"unit_cost\", \"description\": \"Cost per unit\" },\n    { \"field\": \"warehouse_location\", \"description\": \"Storage location code\" }\n  ]\n}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/extract",
+              "host": ["{{baseUrl}}"],
+              "path": ["extract"]
+            },
+            "description": "Upload an inventory CSV file and extract product data.\n\n**Test Data:** Use `test-data/inventory_data.csv`"
+          },
+          "response": []
+        },
+        {
+          "name": "Extract - Compound Fields (Address)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 202) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('operationId', response.operationId);",
+                  "    console.log('Operation ID saved:', response.operationId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Select test-data/customer_addresses.csv"
+                },
+                {
+                  "key": "context",
+                  "value": "{\n  \"description\": \"Customer shipping addresses for order fulfillment. Addresses need to be parsed into components.\",\n  \"fields\": [\n    { \"field\": \"customer_id\", \"description\": \"Customer account number\" },\n    { \"field\": \"customer_name\", \"description\": \"Full name of the customer\" },\n    { \"field\": \"street_address\", \"description\": \"Street number and name\" },\n    { \"field\": \"city\", \"description\": \"City name\" },\n    { \"field\": \"state\", \"description\": \"State or province\" },\n    { \"field\": \"zip_code\", \"description\": \"Postal or ZIP code\" },\n    { \"field\": \"country\", \"description\": \"Country name\" }\n  ]\n}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/extract",
+              "host": ["{{baseUrl}}"],
+              "path": ["extract"]
+            },
+            "description": "Test compound field extraction - addresses combined in single column need to be parsed into separate fields.\n\n**Test Data:** Use `test-data/customer_addresses.csv`"
+          },
+          "response": []
+        },
+        {
+          "name": "Extract - With Sheet Name (Excel)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 202) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('operationId', response.operationId);",
+                  "    console.log('Operation ID saved:', response.operationId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Select an Excel file (.xlsx)"
+                },
+                {
+                  "key": "sheetName",
+                  "value": "Sheet1",
+                  "type": "text",
+                  "description": "Name of the sheet to process"
+                },
+                {
+                  "key": "context",
+                  "value": "{\n  \"description\": \"Quarterly report data from Excel spreadsheet.\",\n  \"fields\": [\n    { \"field\": \"date\", \"description\": \"Report date\" },\n    { \"field\": \"metric\", \"description\": \"Metric name\" },\n    { \"field\": \"value\", \"description\": \"Metric value\" }\n  ]\n}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/extract",
+              "host": ["{{baseUrl}}"],
+              "path": ["extract"]
+            },
+            "description": "Example of extracting from a specific sheet in an Excel file.\n\nModify the sheetName parameter as needed."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Operations",
+      "description": "Operation status and management",
+      "item": [
+        {
+          "name": "Get Operation Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/operations/{{operationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["operations", "{{operationId}}"]
+            },
+            "description": "Get the status of an extraction operation.\n\nUses the `operationId` from environment (auto-saved from Extract requests).\n\n**Statuses:**\n- `pending` - Queued for processing\n- `processing` - Currently extracting\n- `completed` - Done, result available\n- `failed` - Error occurred\n- `cancelled` - User cancelled"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Operation Status (Manual ID)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/operations/op_your_operation_id_here",
+              "host": ["{{baseUrl}}"],
+              "path": ["operations", "op_your_operation_id_here"]
+            },
+            "description": "Get operation status with a manually specified ID.\n\nReplace `op_your_operation_id_here` with your actual operation ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Operation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/operations/{{operationId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["operations", "{{operationId}}", "cancel"]
+            },
+            "description": "Cancel a pending or processing operation.\n\nCannot cancel completed or failed operations."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bedrock (AI Models)",
+      "description": "Direct AWS Bedrock model interaction - reference endpoints",
+      "item": [
+        {
+          "name": "List Available Models",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bedrock/models",
+              "host": ["{{baseUrl}}"],
+              "path": ["bedrock", "models"]
+            },
+            "description": "Get list of available AWS Bedrock models"
+          },
+          "response": []
+        },
+        {
+          "name": "Invoke Model",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"model\": \"anthropic.claude-3-5-haiku-20241022-v1:0\",\n  \"prompt\": \"What is the capital of France? Answer in one sentence.\",\n  \"temperature\": 0.7,\n  \"maxTokens\": 100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bedrock/invoke",
+              "host": ["{{baseUrl}}"],
+              "path": ["bedrock", "invoke"]
+            },
+            "description": "Invoke an AI model with a prompt.\n\n**Models:**\n- `anthropic.claude-3-5-sonnet-20241022-v2:0` - High quality\n- `anthropic.claude-3-5-haiku-20241022-v1:0` - Fast & cheap\n- `us.amazon.nova-lite-v1:0` - Amazon's model"
+          },
+          "response": []
+        },
+        {
+          "name": "Stream Model Response",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"model\": \"anthropic.claude-3-5-haiku-20241022-v1:0\",\n  \"prompt\": \"Write a short poem about data extraction.\",\n  \"temperature\": 0.8,\n  \"maxTokens\": 200\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bedrock/stream",
+              "host": ["{{baseUrl}}"],
+              "path": ["bedrock", "stream"]
+            },
+            "description": "Stream AI model response via Server-Sent Events.\n\n**Note:** Streaming responses work best in a browser or SSE-capable client."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Examples",
+      "description": "Example AI-powered features demonstrating Bedrock service usage",
+      "item": [
+        {
+          "name": "List Models (Example)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/examples/models",
+              "host": ["{{baseUrl}}"],
+              "path": ["examples", "models"]
+            },
+            "description": "Example endpoint showing available AI models"
+          },
+          "response": []
+        },
+        {
+          "name": "Simple Completion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Explain quantum computing in simple terms.\",\n  \"temperature\": 0.7\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/examples/simple-completion",
+              "host": ["{{baseUrl}}"],
+              "path": ["examples", "simple-completion"]
+            },
+            "description": "Basic AI text generation example"
+          },
+          "response": []
+        },
+        {
+          "name": "Translate Text",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Hello, how are you today?\",\n  \"targetLanguage\": \"Spanish\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/examples/translate",
+              "host": ["{{baseUrl}}"],
+              "path": ["examples", "translate"]
+            },
+            "description": "AI-powered translation example"
+          },
+          "response": []
+        },
+        {
+          "name": "Code Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"function calculateTotal(items) {\\n  let total = 0;\\n  for (var i = 0; i < items.length; i++) {\\n    total = total + items[i].price * items[i].qty;\\n  }\\n  return total;\\n}\",\n  \"language\": \"javascript\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/examples/code-review",
+              "host": ["{{baseUrl}}"],
+              "path": ["examples", "code-review"]
+            },
+            "description": "AI-powered code review example"
+          },
+          "response": []
+        },
+        {
+          "name": "Summarize Text",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Artificial intelligence (AI) has rapidly evolved from a theoretical concept to a transformative force reshaping industries worldwide. Machine learning, a subset of AI, enables systems to learn from data and improve over time without explicit programming. Deep learning, using neural networks with multiple layers, has achieved remarkable breakthroughs in image recognition, natural language processing, and game playing. Companies across sectors—from healthcare to finance—are investing heavily in AI to automate processes, gain insights from data, and create new products and services. However, this rapid advancement also raises important ethical considerations around privacy, bias, job displacement, and the need for transparent, responsible AI development.\",\n  \"maxLength\": 50\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/examples/summarize",
+              "host": ["{{baseUrl}}"],
+              "path": ["examples", "summarize"]
+            },
+            "description": "AI-powered text summarization example"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+

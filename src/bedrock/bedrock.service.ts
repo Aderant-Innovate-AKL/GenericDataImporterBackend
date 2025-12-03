@@ -33,7 +33,13 @@ export class BedrockService {
    * Add new models here to make them available through the API
    */
   private models: ModelConfig[] = [
-    // Claude models - Best for complex reasoning, coding, and creative tasks
+    // Claude 4.5 models - Latest generation
+    {
+      id: 'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+      name: 'Claude 4.5 Sonnet',
+      provider: 'Anthropic',
+    },
+    // Claude 3.5 models - Best for complex reasoning, coding, and creative tasks
     {
       id: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
       name: 'Claude 3.5 Sonnet',

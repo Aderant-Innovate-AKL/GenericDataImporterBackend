@@ -1,0 +1,12 @@
+EmpNo,Name,Contact Email,Dept,Position,Start Date,Annual Compensation
+E001,Alice Johnson,alice.johnson@company.com,Engineering,Senior Developer,2021-03-15,125000
+E002,Bob Williams,bob.w@company.com,Engineering,Tech Lead,2019-08-01,145000
+E003,Carol Martinez,carol.martinez@company.com,Marketing,Marketing Manager,2020-06-22,95000
+E004,David Chen,d.chen@company.com,Finance,Financial Analyst,2022-01-10,85000
+E005,Emma Thompson,emma.t@company.com,Engineering,Junior Developer,2023-07-03,75000
+E006,Frank Garcia,frank.garcia@company.com,HR,HR Specialist,2021-11-15,70000
+E007,Grace Kim,g.kim@company.com,Sales,Account Executive,2020-04-20,80000
+E008,Henry Davis,henry.davis@company.com,Engineering,DevOps Engineer,2022-09-05,115000
+E009,Isabel Brown,i.brown@company.com,Marketing,Content Strategist,2023-02-14,72000
+E010,James Wilson,james.wilson@company.com,Finance,Controller,2018-05-30,135000
+

@@ -1,0 +1,14 @@
+Item Code,Description,Type,In Stock,Min Level,Cost Each,Location
+SKU-001,Wireless Mouse,Electronics,150,50,12.50,A1-B2
+SKU-002,USB-C Cable 6ft,Accessories,500,100,4.99,A1-C3
+SKU-003,Mechanical Keyboard,Electronics,75,25,45.00,A2-B1
+SKU-004,Monitor Stand,Furniture,30,10,29.99,B1-A1
+SKU-005,Laptop Sleeve 15in,Accessories,200,75,18.50,A1-C4
+SKU-006,Webcam HD 1080p,Electronics,90,30,35.00,A2-B2
+SKU-007,Mouse Pad XL,Accessories,350,100,8.99,A1-C5
+SKU-008,Desk Lamp LED,Furniture,45,15,24.99,B1-A2
+SKU-009,USB Hub 7-port,Electronics,120,40,22.50,A2-B3
+SKU-010,Cable Organizer,Accessories,400,150,3.99,A1-C6
+SKU-011,Ergonomic Chair,Furniture,20,5,249.99,B2-A1
+SKU-012,Headphone Stand,Accessories,80,25,15.99,A1-C7
+
