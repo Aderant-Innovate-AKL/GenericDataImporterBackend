@@ -1,17 +1,26 @@
 import { ParserFactory } from './parser.factory';
 import { CsvParser } from './csv.parser';
 import { ExcelParser } from './excel.parser';
-import { BadRequestException } from '@nestjs/common';
+import { GenericParser } from './generic.parser';
+import { LLMService } from '../extraction/llm.service';
 
 describe('ParserFactory', () => {
   let factory: ParserFactory;
   let csvParser: CsvParser;
   let excelParser: ExcelParser;
+  let genericParser: GenericParser;
+  let mockLlmService: jest.Mocked<LLMService>;
 
   beforeEach(() => {
     csvParser = new CsvParser();
     excelParser = new ExcelParser();
-    factory = new ParserFactory(csvParser, excelParser);
+    mockLlmService = {
+      infer: jest.fn(),
+      getAvailableModels: jest.fn(),
+      estimateTokenCount: jest.fn(),
+    } as unknown as jest.Mocked<LLMService>;
+    genericParser = new GenericParser(mockLlmService);
+    factory = new ParserFactory(csvParser, excelParser, genericParser);
   });
 
   describe('getParser', () => {
@@ -45,31 +54,11 @@ describe('ParserFactory', () => {
       expect(parser).toBe(csvParser);
     });
 
-    it('should throw BadRequestException for unsupported formats', () => {
-      expect(() => factory.getParser('data.pdf')).toThrow(BadRequestException);
-      expect(() => factory.getParser('data.json')).toThrow(BadRequestException);
-      expect(() => factory.getParser('data.xml')).toThrow(BadRequestException);
-    });
-  });
-
-  describe('getSupportedExtensions', () => {
-    it('should return all supported extensions', () => {
-      const extensions = factory.getSupportedExtensions();
-      expect(extensions).toContain('.csv');
-      expect(extensions).toContain('.xlsx');
-      expect(extensions).toContain('.xls');
-    });
-  });
-
-  describe('isSupported', () => {
-    it('should return true for supported files', () => {
-      expect(factory.isSupported('data.csv')).toBe(true);
-      expect(factory.isSupported('data.xlsx')).toBe(true);
-    });
-
-    it('should return false for unsupported files', () => {
-      expect(factory.isSupported('data.pdf')).toBe(false);
-      expect(factory.isSupported('data.json')).toBe(false);
+    it('should return GenericParser for unknown file types', () => {
+      expect(factory.getParser('data.pdf')).toBe(genericParser);
+      expect(factory.getParser('data.json')).toBe(genericParser);
+      expect(factory.getParser('data.xml')).toBe(genericParser);
+      expect(factory.getParser('data.sql')).toBe(genericParser);
     });
   });
 });

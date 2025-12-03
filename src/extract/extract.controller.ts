@@ -18,7 +18,6 @@ import {
 } from '@nestjs/swagger';
 import { OperationsManager } from '../operations/operations.manager';
 import { ExtractionWorker } from '../workers/extraction.worker';
-import { ParserFactory } from '../parsers/parser.factory';
 import { ExtractRequestBodyDto } from './dto/extract.dto';
 
 /**
@@ -40,7 +39,6 @@ export class ExtractController {
   constructor(
     private operationsManager: OperationsManager,
     private extractionWorker: ExtractionWorker,
-    private parserFactory: ParserFactory,
   ) {}
 
   @Post()
@@ -66,7 +64,7 @@ export class ExtractController {
         file: {
           type: 'string',
           format: 'binary',
-          description: 'The file to process (CSV or Excel)',
+          description: 'The file to process',
         },
         sheetName: {
           type: 'string',
@@ -98,7 +96,7 @@ export class ExtractController {
       },
     },
   })
-  @ApiResponse({ status: 400, description: 'Invalid request (missing file, invalid format, etc.)' })
+  @ApiResponse({ status: 400, description: 'Invalid request (missing file, invalid context, etc.)' })
   async extract(
     @UploadedFile() file: Express.Multer.File,
     @Body('sheetName') sheetName?: string,
@@ -107,13 +105,6 @@ export class ExtractController {
     // Validate file
     if (!file) {
       throw new BadRequestException('No file provided');
-    }
-
-    // Validate file format
-    if (!this.parserFactory.isSupported(file.originalname)) {
-      throw new BadRequestException(
-        `Unsupported file format. Supported formats: ${this.parserFactory.getSupportedExtensions().join(', ')}`,
-      );
     }
 
     // Parse context JSON

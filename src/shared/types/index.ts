@@ -8,7 +8,7 @@
 
 export interface NormalizedSource {
   filename: string;
-  type: 'csv' | 'excel';
+  type: 'csv' | 'excel' | 'raw';
   sheet?: string;
 }
 

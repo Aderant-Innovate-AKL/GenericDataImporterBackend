@@ -1,8 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as path from 'path';
 import { Parser } from './interfaces/parser.interface';
 import { CsvParser } from './csv.parser';
 import { ExcelParser } from './excel.parser';
+import { GenericParser } from './generic.parser';
 
 /**
  * Factory for selecting appropriate parser based on file type
@@ -14,6 +15,7 @@ export class ParserFactory {
   constructor(
     private csvParser: CsvParser,
     private excelParser: ExcelParser,
+    private genericParser: GenericParser,
   ) {
     this.parsers = [csvParser, excelParser];
   }
@@ -21,8 +23,7 @@ export class ParserFactory {
   /**
    * Get the appropriate parser for a given filename
    * @param filename - The filename to determine parser for
-   * @returns The appropriate parser instance
-   * @throws BadRequestException if no parser supports the file type
+   * @returns The appropriate parser instance (uses GenericParser for unknown types)
    */
   getParser(filename: string): Parser {
     const ext = path.extname(filename).toLowerCase();
@@ -33,24 +34,9 @@ export class ParserFactory {
       }
     }
 
-    throw new BadRequestException(
-      `Unsupported file format: ${ext}. Supported formats: ${this.getSupportedExtensions().join(', ')}`,
-    );
-  }
-
-  /**
-   * Get all supported file extensions
-   */
-  getSupportedExtensions(): string[] {
-    return this.parsers.flatMap((p) => p.supportedExtensions());
-  }
-
-  /**
-   * Check if a file extension is supported
-   */
-  isSupported(filename: string): boolean {
-    const ext = path.extname(filename).toLowerCase();
-    return this.getSupportedExtensions().includes(ext);
+    // Use GenericParser for unknown file types
+    // It will validate non-binary content and use LLM to extract structured data
+    return this.genericParser;
   }
 }
 
