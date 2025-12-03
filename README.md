@@ -1,16 +1,17 @@
-# Hackathon NestJS Template with AWS Bedrock
+# Generic Data Importer Backend
 
-A production-ready NestJS backend template with AWS Bedrock AI integration. Perfect for hackathons, rapid prototyping, and building AI-powered applications quickly.
+An AI-powered data extraction service that intelligently maps source data to user-defined schemas using LLM-based field extraction with AWS Bedrock.
 
 ## What's Included
 
+- **Generic Data Importer** - AI-powered CSV/Excel data extraction
+- **Two-Pass Extraction** - Smart column discovery and compound value extraction
+- **Async Operations** - Background processing with status polling
 - **NestJS Framework** - Modern, scalable Node.js backend
 - **AWS Bedrock Integration** - Ready-to-use AI models (Claude & Amazon Nova)
-- **Swagger/OpenAPI** - Interactive API documentation
-- **TypeScript** - Type safety and better developer experience
-- **Validation** - Request validation with class-validator
-- **Example Endpoints** - Practical AI implementation patterns
-- **CORS Enabled** - Frontend-ready configuration
+- **Swagger/OpenAPI** - Interactive API documentation at `/api`
+- **TypeScript** - Full type safety
+- **Unit Tests** - Comprehensive test coverage
 
 ## Quick Start
 
@@ -134,6 +135,88 @@ private models: ModelConfig[] = [
 ```
 
 ## API Endpoints
+
+### Data Importer Endpoints
+
+#### `POST /extract`
+Initiate a data extraction operation from CSV or Excel files.
+
+**Request (multipart/form-data):**
+- `file` - The file to process (CSV, Excel)
+- `sheetName` - (optional) Sheet name for Excel files
+- `context` - JSON string with extraction context
+
+**Context JSON Example:**
+```json
+{
+  "description": "Monthly sales report from regional distributors",
+  "fields": [
+    {"field": "transaction_date", "description": "The date the sale occurred"},
+    {"field": "product_sku", "description": "The product identifier or SKU code"},
+    {"field": "total_amount", "description": "Total sale amount"},
+    {"field": "region", "description": "Geographic region of the customer"}
+  ]
+}
+```
+
+**Response (202 Accepted):**
+```json
+{
+  "operationId": "op_abc123def456",
+  "status": "pending",
+  "createdAt": "2024-12-03T10:30:00Z",
+  "links": {
+    "self": "/operations/op_abc123def456",
+    "cancel": "/operations/op_abc123def456/cancel"
+  }
+}
+```
+
+#### `GET /operations/{operationId}`
+Get operation status and results.
+
+**Response (Processing):**
+```json
+{
+  "operationId": "op_abc123def456",
+  "status": "processing",
+  "progress": {
+    "phase": "extraction",
+    "currentStep": "Processing row 50 of 100",
+    "rowsProcessed": 50,
+    "totalRows": 100,
+    "percentComplete": 50
+  }
+}
+```
+
+**Response (Completed):**
+```json
+{
+  "operationId": "op_abc123def456",
+  "status": "completed",
+  "result": {
+    "data": [...],
+    "metadata": {
+      "sourceFile": "sales.csv",
+      "rowsProcessed": 100,
+      "extractionSummary": {
+        "directMappings": 3,
+        "compoundExtractions": 2,
+        "averageConfidence": 8.5
+      }
+    }
+  }
+}
+```
+
+#### `POST /operations/{operationId}/cancel`
+Cancel a pending or processing operation.
+
+#### `GET /health`
+Health check endpoint with operation statistics.
+
+---
 
 ### Core Bedrock Endpoints
 
@@ -298,26 +381,55 @@ async yourEndpoint(@Body() body: { prompt: string }) {
 ## Project Structure
 
 ```
-hackathon-nestjs-template/
+data-importer-backend/
 ├── src/
-│   ├── main.ts                  # Application entry point
-│   ├── app.module.ts            # Root module
-│   ├── app.controller.ts        # Health check endpoints
-│   ├── config/
-│   │   └── aws.config.ts        # AWS configuration
-│   ├── bedrock/                 # Core Bedrock integration
-│   │   ├── bedrock.module.ts
-│   │   ├── bedrock.service.ts   # Main service - use this!
-│   │   ├── bedrock.controller.ts
-│   │   └── dto/
-│   │       └── invoke-model.dto.ts
-│   └── examples/                # Example implementations
-│       ├── examples.module.ts
-│       └── examples.controller.ts
-├── .env.example                 # Environment template
-├── .gitignore
+│   ├── main.ts                    # Application entry point
+│   ├── app.module.ts              # Root module
+│   ├── app.controller.ts          # Root health check
+│   │
+│   ├── shared/                    # Shared types and utilities
+│   │   └── types/
+│   │       └── index.ts           # Type definitions
+│   │
+│   ├── parsers/                   # File parsing module
+│   │   ├── csv.parser.ts          # CSV parser
+│   │   ├── excel.parser.ts        # Excel parser
+│   │   └── parser.factory.ts      # Parser factory
+│   │
+│   ├── operations/                # Operation management
+│   │   ├── operations.store.ts    # In-memory store
+│   │   ├── operations.manager.ts  # Operation lifecycle
+│   │   └── operations.controller.ts
+│   │
+│   ├── extraction/                # LLM-based extraction
+│   │   ├── sampler.service.ts     # Row sampling logic
+│   │   ├── llm.service.ts         # Bedrock integration
+│   │   ├── extractor.service.ts   # Main orchestrator
+│   │   └── prompts/               # LLM prompt templates
+│   │       ├── discovery.prompt.ts
+│   │       └── compound.prompt.ts
+│   │
+│   ├── mapping/                   # Result mapping
+│   │   └── mapper.service.ts      # Transform extractions
+│   │
+│   ├── workers/                   # Background processing
+│   │   └── extraction.worker.ts   # Async extraction worker
+│   │
+│   ├── extract/                   # Extract API endpoint
+│   │   └── extract.controller.ts
+│   │
+│   ├── health/                    # Health check endpoint
+│   │   └── health.controller.ts
+│   │
+│   ├── bedrock/                   # AWS Bedrock integration
+│   │   └── bedrock.service.ts
+│   │
+│   └── examples/                  # Example endpoints (reference)
+│
 ├── package.json
 ├── tsconfig.json
+├── jest.config.js
+├── Dockerfile
 └── README.md
 ```
 

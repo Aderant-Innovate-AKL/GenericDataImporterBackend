@@ -24,19 +24,23 @@ async function bootstrap() {
 
   // Setup Swagger documentation
   const config = new DocumentBuilder()
-    .setTitle('Hackathon NestJS Template')
+    .setTitle('Generic Data Importer API')
     .setDescription(
-      'NestJS backend template with AWS Bedrock AI integration. Perfect for hackathons and rapid prototyping.',
+      'AI-powered data extraction service that intelligently maps source data to user-defined schemas using LLM-based field extraction.',
     )
     .setVersion('1.0')
-    .addTag('bedrock', 'AWS Bedrock AI model endpoints')
+    .addTag('extract', 'Data extraction endpoints')
+    .addTag('operations', 'Operation status and management')
+    .addTag('health', 'Health check endpoints')
+    .addTag('bedrock', 'AWS Bedrock AI model endpoints (reference)')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
-  console.log(`🚀 Backend server running on http://localhost:${port}`);
+  console.log(`🚀 Generic Data Importer API running on http://localhost:${port}`);
   console.log(`📚 Swagger documentation available at http://localhost:${port}/api`);
+  console.log(`❤️  Health check available at http://localhost:${port}/health`);
 }
 bootstrap();
