@@ -7,6 +7,9 @@ RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 
 WORKDIR /app
 
+ARG GHCR_READ_TOKEN
+ENV GHCR_READ_TOKEN=${GHCR_READ_TOKEN}
+
 # Copy package files
 COPY package.json pnpm-lock.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile && pnpm store prune
