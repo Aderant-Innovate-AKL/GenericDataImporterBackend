@@ -7,7 +7,7 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    "target": "ES2024",
+    "target": "ES2021",
     "strictNullChecks": true,
     "sourceMap": true,
     "outDir": "./dist",

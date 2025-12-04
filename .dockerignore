@@ -44,5 +44,3 @@ copilot
 README.md
 .prettierrc
 .eslintrc.js
-tsconfig.json
-nest-cli.json
