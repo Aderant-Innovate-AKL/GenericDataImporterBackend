@@ -1,6 +1,6 @@
 # Generic Data Importer Backend
 
-An AI-powered data extraction service that intelligently maps source data to user-defined schemas using LLM-based field extraction with AWS Bedrock.
+An AI-powered data extraction service that intelligently maps source data to user-defined schemas using LLM-based field extraction.
 
 ## What's Included
 
@@ -8,7 +8,7 @@ An AI-powered data extraction service that intelligently maps source data to use
 - **Two-Pass Extraction** - Smart column discovery and compound value extraction
 - **Async Operations** - Background processing with status polling
 - **NestJS Framework** - Modern, scalable Node.js backend
-- **AWS Bedrock Integration** - Ready-to-use AI models (Claude & Amazon Nova)
+- **Flexible LLM Integration** - Supports Anthropic API or AWS Bedrock
 - **Swagger/OpenAPI** - Interactive API documentation at `/api`
 - **TypeScript** - Full type safety
 - **Unit Tests** - Comprehensive test coverage
@@ -19,8 +19,7 @@ An AI-powered data extraction service that intelligently maps source data to use
 
 - Node.js 18+ installed
 - pnpm installed (`npm install -g pnpm`)
-- AWS account with Bedrock access
-- AWS CLI configured (or manually set up credentials)
+- **Either** Anthropic API key **or** AWS account with Bedrock access
 
 ### 2. Installation
 
@@ -29,17 +28,34 @@ An AI-powered data extraction service that intelligently maps source data to use
 pnpm install
 ```
 
-### 3. AWS Configuration
+### 3. LLM Configuration
+
+Choose one of the following options:
+
+#### Option A: Anthropic API (Recommended for simplicity)
 
 Create a `.env` file in the root directory:
 
 ```env
+LLM_PROVIDER=anthropic
+ANTHROPIC_API_KEY=your_api_key_here
+PORT=3001
+```
+
+Get your API key from [console.anthropic.com](https://console.anthropic.com)
+
+#### Option B: AWS Bedrock
+
+Create a `.env` file in the root directory:
+
+```env
+LLM_PROVIDER=aws
 AWS_PROFILE=default
 AWS_REGION=us-east-1
 PORT=3001
 ```
 
-**Option A: Using AWS CLI (Recommended)**
+**AWS CLI Configuration:**
 
 ```bash
 # Configure AWS credentials
@@ -48,9 +64,7 @@ aws configure
 # This creates ~/.aws/credentials with your access keys
 ```
 
-**Option B: Manual Configuration**
-
-Create/edit `~/.aws/credentials`:
+**Or manually create** `~/.aws/credentials`:
 
 ```ini
 [default]
@@ -58,16 +72,7 @@ aws_access_key_id = YOUR_ACCESS_KEY
 aws_secret_access_key = YOUR_SECRET_KEY
 ```
 
-Create/edit `~/.aws/config`:
-
-```ini
-[default]
-region = us-east-1
-```
-
-### 4. Enable Bedrock Models
-
-You need to enable models in your AWS account:
+**Enable Bedrock Models:**
 
 1. Go to AWS Sandbox - Bedrock
 2. Navigate to "Model access" in the left sidebar
@@ -75,12 +80,11 @@ You need to enable models in your AWS account:
 4. Enable:
    - Claude 3.5 Sonnet
    - Claude 3.5 Haiku
-   - Claude 3 Opus
    - Amazon Nova Micro/Lite/Pro
 
-> **Note**: Model availability varies by region. `us-east-1` (Oregon) has the most models.
+> **Note**: Model availability varies by region. `us-east-1` has the most models.
 
-### 5. Run the Server
+### 4. Run the Server
 
 ```bash
 # Development mode
@@ -95,13 +99,17 @@ Server runs at `http://localhost:3001`
 
 Swagger docs at `http://localhost:3001/api`
 
-## AWS Bedrock Integration
+## LLM Integration
 
 ### Overview
 
-This template provides a unified service for interacting with multiple AI models through AWS Bedrock. The service handles:
+This service supports two LLM providers:
 
-- Provider-specific request/response formatting (Anthropic vs Amazon)
+1. **Anthropic API** (Direct) - Simple setup with API key
+2. **AWS Bedrock** - Enterprise-grade with multiple model options
+
+The service handles:
+- Provider-specific request/response formatting
 - Model management and configuration
 - Synchronous and streaming responses
 - Token usage tracking
@@ -109,14 +117,26 @@ This template provides a unified service for interacting with multiple AI models
 
 ### Available Models
 
+#### Anthropic API Models
+
 | Model | ID | Best For | Speed | Cost |
 |-------|-----|----------|-------|------|
-| **Claude 3.5 Sonnet** | `anthropic.claude-3-5-sonnet-20241022-v2:0` | Complex reasoning, coding, analysis | Medium | $$$ |
-| **Claude 3.5 Haiku** | `anthropic.claude-3-5-haiku-20241022-v1:0` | Fast responses, simple tasks | Fast | $ |
-| **Claude 3 Opus** | `anthropic.claude-3-opus-20240229-v1:0` | Highest quality, difficult tasks | Slow | $$$$ |
-| **Amazon Nova Micro** | `us.amazon.nova-micro-v1:0` | Ultra-fast, simple text tasks | Very Fast | $ |
+| **Claude Opus 4** | `claude-opus-4-20250514` | Highest intelligence | Slow | $$$$ |
+| **Claude Sonnet 4** | `claude-sonnet-4-20250514` | Best balanced model | Medium | $$$ |
+| **Claude 3.5 Sonnet** | `claude-3-5-sonnet-20241022` | Complex reasoning, coding | Medium | $$$ |
+| **Claude 3.5 Haiku** | `claude-3-5-haiku-20241022` | Fast responses | Fast | $ |
+| **Claude 3 Opus** | `claude-3-opus-20240229` | Legacy high quality | Slow | $$$$ |
+
+#### AWS Bedrock Models
+
+| Model | ID | Best For | Speed | Cost |
+|-------|-----|----------|-------|------|
+| **Claude 3.5 Sonnet** | `anthropic.claude-3-5-sonnet-20241022-v2:0` | Complex reasoning, coding | Medium | $$$ |
+| **Claude 3.5 Haiku** | `anthropic.claude-3-5-haiku-20241022-v1:0` | Fast responses | Fast | $ |
+| **Claude 3 Opus** | `anthropic.claude-3-opus-20240229-v1:0` | Highest quality | Slow | $$$$ |
+| **Amazon Nova Micro** | `us.amazon.nova-micro-v1:0` | Ultra-fast text tasks | Very Fast | $ |
 | **Amazon Nova Lite** | `us.amazon.nova-lite-v1:0` | Balanced performance | Fast | $$ |
-| **Amazon Nova Pro** | `us.amazon.nova-pro-v1:0` | Complex text generation | Medium | $$$ |
+| **Amazon Nova Pro** | `us.amazon.nova-pro-v1:0` | Complex generation | Medium | $$$ |
 
 ### Adding New Models
 

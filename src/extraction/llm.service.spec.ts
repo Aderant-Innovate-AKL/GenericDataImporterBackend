@@ -23,7 +23,7 @@ describe('LLMService', () => {
     it('should call bedrock service with default parameters', async () => {
       mockBedrockService.invoke.mockResolvedValue({
         content: 'Test response',
-        model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+        model: 'claude-3-5-sonnet-20241022',
         usage: { inputTokens: 10, outputTokens: 20 },
       });
 
@@ -31,7 +31,7 @@ describe('LLMService', () => {
 
       expect(result).toBe('Test response');
       expect(mockBedrockService.invoke).toHaveBeenCalledWith({
-        model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+        model: 'claude-3-5-sonnet-20241022',
         prompt: 'Test prompt',
         temperature: 0.1,
         maxTokens: 4096,

@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { BedrockModule } from './bedrock/bedrock.module';
 import { ExamplesModule } from './examples/examples.module';
-import awsConfig from './config/aws.config';
+import llmConfig from './config/llm.config';
 
 // Data Importer modules
 import { ParsersModule } from './parsers/parsers.module';
@@ -18,7 +18,7 @@ import { HealthModule } from './health/health.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [awsConfig],
+      load: [llmConfig],
     }),
     // Existing modules (kept as reference)
     BedrockModule,

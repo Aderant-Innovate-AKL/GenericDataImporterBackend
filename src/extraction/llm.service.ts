@@ -13,7 +13,7 @@ export interface LLMInferenceConfig {
 /**
  * Default model configuration
  */
-const DEFAULT_MODEL = 'us.anthropic.claude-sonnet-4-5-20250929-v1:0';
+const DEFAULT_MODEL = 'claude-sonnet-4-5-20250929';
 const DEFAULT_TEMPERATURE = 0.1; // Low temperature for consistent extraction
 const DEFAULT_MAX_TOKENS = 4096;
 
@@ -23,7 +23,7 @@ const DEFAULT_MAX_TOKENS = 4096;
  */
 @Injectable()
 export class LLMService {
-  constructor(private bedrockService: BedrockService) {}
+  constructor(private bedrockService: BedrockService) { }
 
   /**
    * Perform inference with the configured model

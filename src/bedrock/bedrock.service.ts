@@ -6,6 +6,7 @@ import {
   InvokeModelWithResponseStreamCommand,
 } from '@aws-sdk/client-bedrock-runtime';
 import { fromIni } from '@aws-sdk/credential-providers';
+import Anthropic from '@anthropic-ai/sdk';
 import { InvokeModelDto, ModelResponse } from './dto/invoke-model.dto';
 
 /**
@@ -18,54 +19,81 @@ export interface ModelConfig {
 }
 
 /**
- * Service for interacting with AWS Bedrock AI models
+ * Service for interacting with AI models
  *
- * This service provides a unified interface for invoking multiple AI models
- * through AWS Bedrock, including Claude (Anthropic) and Nova (Amazon) models.
- * It handles provider-specific request/response formatting automatically.
+ * Supports both Anthropic API and AWS Bedrock based on configuration.
+ * Provides a unified interface for invoking multiple AI models.
  */
 @Injectable()
 export class BedrockService {
-  private client: BedrockRuntimeClient;
+  private provider: string;
+  private bedrockClient?: BedrockRuntimeClient;
+  private anthropicClient?: Anthropic;
 
   /**
    * Available models configuration
    * Add new models here to make them available through the API
    */
   private models: ModelConfig[] = [
-    // Claude 4.5 models - Latest generation
+    // Claude models for Anthropic API
     {
-      id: 'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
-      name: 'Claude 4.5 Sonnet',
+      id: 'claude-sonnet-4-5-20250929',
+      name: 'Claude Sonnet 4.5',
       provider: 'Anthropic',
     },
-    // Claude 3.5 models - Best for complex reasoning, coding, and creative tasks
+    {
+      id: 'claude-haiku-4-5-20251001',
+      name: 'Claude 4.5 Haiku',
+      provider: 'Anthropic',
+    },
+    // AWS Bedrock model IDs
+    {
+      id: 'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+      name: 'Claude 4.5 Sonnet (Bedrock)',
+      provider: 'Anthropic',
+    },
     {
       id: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
-      name: 'Claude 3.5 Sonnet',
+      name: 'Claude 3.5 Sonnet (Bedrock)',
       provider: 'Anthropic',
     },
     {
       id: 'anthropic.claude-3-5-haiku-20241022-v1:0',
-      name: 'Claude 3.5 Haiku',
+      name: 'Claude 3.5 Haiku (Bedrock)',
       provider: 'Anthropic',
     },
-    { id: 'anthropic.claude-3-opus-20240229-v1:0', name: 'Claude 3 Opus', provider: 'Anthropic' },
-    // Nova models - Fast, cost-effective for text generation and analysis
+    {
+      id: 'anthropic.claude-3-opus-20240229-v1:0',
+      name: 'Claude 3 Opus (Bedrock)',
+      provider: 'Anthropic',
+    },
     { id: 'us.amazon.nova-micro-v1:0', name: 'Nova Micro', provider: 'Amazon' },
     { id: 'us.amazon.nova-lite-v1:0', name: 'Nova Lite', provider: 'Amazon' },
     { id: 'us.amazon.nova-pro-v1:0', name: 'Nova Pro', provider: 'Amazon' },
   ];
 
   constructor(private configService: ConfigService) {
-    const region = this.configService.get<string>('aws.region');
-    const profile = this.configService.get<string>('aws.profile');
+    this.provider = this.configService.get<string>('llm.provider') || 'anthropic';
 
-    // Initialize Bedrock client with AWS credentials from ~/.aws/credentials
-    this.client = new BedrockRuntimeClient({
-      region,
-      credentials: fromIni({ profile }),
-    });
+    if (this.provider === 'aws') {
+      const region = this.configService.get<string>('llm.aws.region');
+      const profile = this.configService.get<string>('llm.aws.profile');
+
+      this.bedrockClient = new BedrockRuntimeClient({
+        region,
+        credentials: fromIni({ profile }),
+      });
+      console.log(`[BedrockService] Initialized with AWS Bedrock (region: ${region})`);
+    } else if (this.provider === 'anthropic') {
+      const apiKey = this.configService.get<string>('llm.anthropic.apiKey');
+      if (!apiKey) {
+        throw new Error('ANTHROPIC_API_KEY is required when LLM_PROVIDER=anthropic');
+      }
+      this.anthropicClient = new Anthropic({ apiKey });
+      console.log(`[BedrockService] Initialized with Anthropic API`);
+    } else {
+      throw new Error(`Unsupported LLM provider: ${this.provider}`);
+    }
   }
 
   /**
@@ -86,10 +114,68 @@ export class BedrockService {
       throw new BadRequestException(`Model ${dto.model} not found`);
     }
 
-    // Build provider-specific request body (Anthropic vs Amazon format)
+    console.log(`[Bedrock] Invoking ${modelConfig.name} via ${this.provider}`);
+
+    if (this.provider === 'anthropic') {
+      return this.invokeAnthropicAPI(dto, modelConfig);
+    } else {
+      return this.invokeBedrockAPI(dto, modelConfig);
+    }
+  }
+
+  /**
+   * Invoke Anthropic API directly
+   */
+  private async invokeAnthropicAPI(
+    dto: InvokeModelDto,
+    modelConfig: ModelConfig,
+  ): Promise<ModelResponse> {
+    if (!this.anthropicClient) {
+      throw new BadRequestException('Anthropic client not initialized');
+    }
+
+    try {
+      const response = await this.anthropicClient.messages.create({
+        model: dto.model,
+        max_tokens: dto.maxTokens || 4096,
+        temperature: dto.temperature || 0.7,
+        messages: [
+          {
+            role: 'user',
+            content: dto.prompt,
+          },
+        ],
+      });
+
+      const textContent = response.content.find((c) => c.type === 'text');
+
+      return {
+        content: textContent?.type === 'text' ? textContent.text : '',
+        model: dto.model,
+        usage: {
+          inputTokens: response.usage.input_tokens,
+          outputTokens: response.usage.output_tokens,
+        },
+      };
+    } catch (error) {
+      console.error(`[Bedrock] Anthropic API error:`, error);
+      throw new BadRequestException(`Failed to invoke model: ${error.message}`);
+    }
+  }
+
+  /**
+   * Invoke AWS Bedrock API
+   */
+  private async invokeBedrockAPI(
+    dto: InvokeModelDto,
+    modelConfig: ModelConfig,
+  ): Promise<ModelResponse> {
+    if (!this.bedrockClient) {
+      throw new BadRequestException('Bedrock client not initialized');
+    }
+
     const body = this.buildRequestBody(modelConfig.provider, dto);
 
-    console.log(`[Bedrock] Invoking ${modelConfig.name} (${modelConfig.provider})`);
     console.log(`[Bedrock] Request body:`, JSON.stringify(body, null, 2));
 
     try {
@@ -100,12 +186,11 @@ export class BedrockService {
         body: JSON.stringify(body),
       });
 
-      const response = await this.client.send(command);
+      const response = await this.bedrockClient.send(command);
       const responseBody = JSON.parse(new TextDecoder().decode(response.body));
 
       console.log(`[Bedrock] Response body:`, JSON.stringify(responseBody, null, 2));
 
-      // Parse provider-specific response format
       return this.parseResponse(modelConfig.provider, responseBody, dto.model);
     } catch (error) {
       console.error(`[Bedrock] Error invoking ${modelConfig.name}:`, error);
@@ -131,6 +216,59 @@ export class BedrockService {
       throw new BadRequestException(`Model ${dto.model} not found`);
     }
 
+    if (this.provider === 'anthropic') {
+      yield* this.invokeAnthropicStreamAPI(dto);
+    } else {
+      yield* this.invokeBedrockStreamAPI(dto, modelConfig);
+    }
+  }
+
+  /**
+   * Invoke Anthropic API with streaming
+   */
+  private async *invokeAnthropicStreamAPI(dto: InvokeModelDto): AsyncGenerator<string> {
+    if (!this.anthropicClient) {
+      throw new BadRequestException('Anthropic client not initialized');
+    }
+
+    try {
+      const stream = await this.anthropicClient.messages.create({
+        model: dto.model,
+        max_tokens: dto.maxTokens || 4096,
+        temperature: dto.temperature || 0.7,
+        messages: [
+          {
+            role: 'user',
+            content: dto.prompt,
+          },
+        ],
+        stream: true,
+      });
+
+      for await (const event of stream) {
+        if (
+          event.type === 'content_block_delta' &&
+          event.delta.type === 'text_delta'
+        ) {
+          yield event.delta.text;
+        }
+      }
+    } catch (error) {
+      throw new BadRequestException(`Failed to stream model: ${error.message}`);
+    }
+  }
+
+  /**
+   * Invoke AWS Bedrock with streaming
+   */
+  private async *invokeBedrockStreamAPI(
+    dto: InvokeModelDto,
+    modelConfig: ModelConfig,
+  ): AsyncGenerator<string> {
+    if (!this.bedrockClient) {
+      throw new BadRequestException('Bedrock client not initialized');
+    }
+
     const body = this.buildRequestBody(modelConfig.provider, dto);
 
     try {
@@ -141,10 +279,9 @@ export class BedrockService {
         body: JSON.stringify(body),
       });
 
-      const response = await this.client.send(command);
+      const response = await this.bedrockClient.send(command);
 
       if (response.body) {
-        // Process streaming events as they arrive
         for await (const event of response.body) {
           if (event.chunk) {
             const chunk = JSON.parse(new TextDecoder().decode(event.chunk.bytes));
